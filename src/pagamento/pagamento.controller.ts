@@ -10,7 +10,7 @@ class PagamentoController {
     try {
       const { itens } = req.body;
 
-      if (!itens || itens.length === 0) {
+      if (!itens || !Array.isArray(itens) || itens.length === 0) {
         return res.status(400).json({ erro: "Nenhum item enviado." });
       }
 
@@ -19,11 +19,11 @@ class PagamentoController {
         price_data: {
           currency: "brl",
           product_data: {
-            name: item.nome,
+            name: item.nome || "Produto",
           },
-          unit_amount: Math.round(item.precoUnitario * 100), // R$ → centavos
+          unit_amount: Math.round(Number(item.precoUnitario) * 100), // converte para centavos
         },
-        quantity: item.quantidade,
+        quantity: Number(item.quantidade) || 1,
       }));
 
       // Criar sessão de pagamento
@@ -37,7 +37,7 @@ class PagamentoController {
 
       return res.json({ url: session.url });
     } catch (err: any) {
-      console.error("Erro Stripe:", err);
+      console.error("Erro Stripe:", err.message || err);
       return res.status(500).json({ erro: "Erro ao criar pagamento." });
     }
   }
